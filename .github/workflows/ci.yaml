@@ -63,7 +63,7 @@ jobs:
 
       - name: Print Output
         id: output
-        run: | 
+        run: |
           echo "${{ steps.test-action.outputs.issues-created }}"
           echo "${{ steps.test-action.outputs.issues-updated }}"
           echo "${{ steps.test-action.outputs.issues-closed }}"

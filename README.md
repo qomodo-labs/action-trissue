@@ -1,8 +1,12 @@
 # Trissue – A legendary journey to secure your repositories!
 
-This GitHub action reports results from a [Trivy](https://github.com/aquasecurity/trivy) vulnerability scan as GitHub issues.
+This GitHub action reports results from a
+[Trivy](https://github.com/aquasecurity/trivy) vulnerability scan as GitHub
+issues.
 
-Issues will be generated for each vulnerability with the ability to enable a 'fix-available' label to easily filter issues but also keep track of issues without a fix.
+Issues will be generated for each vulnerability with the ability to enable a
+'fix-available' label to easily filter issues but also keep track of issues
+without a fix.
 
 ## Examples
 
@@ -63,16 +67,16 @@ jobs:
       - name: Repo Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.30.0
         with:
-          scan-type: "repo"
-          severity: "HIGH,CRITICAL"
-          format: "json"
-          output: "repo-result.json"
+          scan-type: 'repo'
+          severity: 'HIGH,CRITICAL'
+          format: 'json'
+          output: 'repo-result.json'
 
       - name: Analyze report and create issues
         uses: qomodo-labs/action-trissue@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          filename: "repo-result.json" # Use the sample report
-          create-labels: "true"
-          enable-fix-label: "true"
+          filename: 'repo-result.json' # Use the sample report
+          create-labels: 'true'
+          enable-fix-label: 'true'
 ```

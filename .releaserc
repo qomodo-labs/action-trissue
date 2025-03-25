@@ -38,10 +38,9 @@
         [
             "@semantic-release/exec",
             {
-                "prepareCmd": "npm run bundle"
+                "prepareCmd": "npm install && npm run bundle"
             }
         ],
-
         "@semantic-release/changelog",
         [
             "@semantic-release/git",
