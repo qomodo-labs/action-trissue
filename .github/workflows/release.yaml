@@ -15,10 +15,16 @@ jobs:
       id-token: write # needed for keyless signing
       pull-requests: write
       issues: write
-    needs: build
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
 
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v4

@@ -69,7 +69,7 @@ jobs:
           output: "repo-result.json"
 
       - name: Analyze report and create issues
-        uses: qomodo-labs/trissue@v1
+        uses: qomodo-labs/action-trissue@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           filename: "repo-result.json" # Use the sample report
