@@ -1,0 +1,34 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  release:
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # to push chart release and create a release
+      id-token: write # needed for keyless signing
+      pull-requests: write
+      issues: write
+    needs: build
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v4
+        with:
+          extra_plugins: |
+            @semantic-release/changelog
+            @semantic-release/exec
+            @semantic-release/git
+            @semantic-release/github
+            @semantic-release/npm
+            conventional-changelog-conventionalcommits
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
