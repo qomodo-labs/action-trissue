@@ -1,0 +1,238 @@
+{
+  "SchemaVersion": 2,
+  "ArtifactName": ".",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": "poetry.lock",
+      "Class": "lang-pkgs",
+      "Type": "poetry",
+      "Vulnerabilities": [
+        {
+          "VulnerabilityID": "CVE-2021-32677",
+          "PkgName": "fastapi",
+          "InstalledVersion": "0.63.0",
+          "Layer": {},
+          "SeveritySource": "ghsa-pip",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2021-32677",
+          "Title": "Skill-sdk version 1.0.6 updates its dependency \"FastAPI\" to v0.65.2 to include a security fix.",
+          "Description": "FastAPI is a web framework for building APIs with Python 3.6+ based on standard Python type hints. FastAPI versions lower than 0.65.2 that used cookies for authentication in path operations that received JSON payloads sent by browsers were vulnerable to a Cross-Site Request Forgery (CSRF) attack. In versions lower than 0.65.2, FastAPI would try to read the request payload as JSON even if the content-type header sent was not set to application/json or a compatible JSON media type (e.g. application/geo+json). A request with a content type of text/plain containing JSON data would be accepted and the JSON data would be extracted. Requests with content type text/plain are exempt from CORS preflights, for being considered Simple requests. The browser will execute them right away including cookies, and the text content could be a JSON string that would be parsed and accepted by the FastAPI application. This is fixed in FastAPI 0.65.2. The request data is now parsed as JSON only if the content-type header is application/json or another JSON compatible media type like application/geo+json. It's best to upgrade to the latest FastAPI, but if updating is not possible then a middleware or a dependency that checks the content-type header and aborts the request if it is not application/json or another JSON compatible content type can act as a mitigating workaround.",
+          "Severity": "HIGH",
+          "CweIDs": ["CWE-352"],
+          "CVSS": {
+            "nvd": {
+              "V2Vector": "AV:N/AC:M/Au:N/C:P/I:P/A:N",
+              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N",
+              "V2Score": 5.8,
+              "V3Score": 8.1
+            }
+          },
+          "References": [
+            "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-32677",
+            "https://github.com/advisories/GHSA-8h2j-cgx8-6xv7",
+            "https://github.com/tiangolo/fastapi/commit/fa7e3c996edf2d5482fff8f9d890ac2390dede4d",
+            "https://github.com/tiangolo/fastapi/commit/fa7e3c996edf2d5482fff8f9d890ac2390dede4d (0.65.2)",
+            "https://github.com/tiangolo/fastapi/security/advisories/GHSA-8h2j-cgx8-6xv7",
+            "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/MATAWX25TYKNEKLDMKWNLYDB34UWTROA/",
+            "https://nvd.nist.gov/vuln/detail/CVE-2021-32677"
+          ],
+          "PublishedDate": "2021-06-09T18:15:00Z",
+          "LastModifiedDate": "2021-06-24T14:31:00Z"
+        },
+        {
+          "VulnerabilityID": "CVE-2021-41496",
+          "PkgName": "numpy",
+          "InstalledVersion": "1.21.5",
+          "FixedVersion": "1.21.6",
+          "Layer": {},
+          "SeveritySource": "nvd",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2021-41496",
+          "Title": "numpy: buffer overflow in the array_from_pyobj() in fortranobject.c",
+          "Description": "** DISPUTED ** Buffer overflow in the array_from_pyobj function of fortranobject.c in NumPy \u003c 1.19, which allows attackers to conduct a Denial of Service attacks by carefully constructing an array with negative values. NOTE: The vendor does not agree this is a vulnerability; the negative dimensions can only be created by an already privileged user (or internally).",
+          "Severity": "HIGH",
+          "CweIDs": ["CWE-120"],
+          "CVSS": {
+            "nvd": {
+              "V2Vector": "AV:N/AC:L/Au:N/C:N/I:N/A:P",
+              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+              "V2Score": 5,
+              "V3Score": 7.5
+            },
+            "redhat": {
+              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+              "V3Score": 7.5
+            }
+          },
+          "References": ["https://github.com/numpy/numpy/issues/19000"],
+          "PublishedDate": "2021-12-17T20:15:00Z",
+          "LastModifiedDate": "2022-02-07T19:15:00Z"
+        },
+        {
+          "VulnerabilityID": "CVE-2021-34552",
+          "PkgName": "pillow",
+          "InstalledVersion": "8.2.0",
+          "FixedVersion": "8.3.0",
+          "Layer": {},
+          "SeveritySource": "ghsa-pip",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2021-34552",
+          "Title": "python-pillow: Buffer overflow in image convert function",
+          "Description": "Pillow through 8.2.0 and PIL (aka Python Imaging Library) through 1.1.7 allow an attacker to pass controlled parameters directly into a convert function to trigger a buffer overflow in Convert.c.",
+          "Severity": "CRITICAL",
+          "CweIDs": ["CWE-120"],
+          "CVSS": {
+            "nvd": {
+              "V2Vector": "AV:N/AC:L/Au:N/C:P/I:P/A:P",
+              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+              "V2Score": 7.5,
+              "V3Score": 9.8
+            },
+            "redhat": {
+              "V3Vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
+              "V3Score": 5.9
+            }
+          },
+          "References": [
+            "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-34552",
+            "https://github.com/advisories/GHSA-7534-mm45-c74v",
+            "https://lists.debian.org/debian-lts-announce/2021/07/msg00018.html",
+            "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/7V6LCG525ARIX6LX5QRYNAWVDD2MD2SV/",
+            "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/VUGBBT63VL7G4JNOEIPDJIOC34ZFBKNJ/",
+            "https://nvd.nist.gov/vuln/detail/CVE-2021-34552",
+            "https://pillow.readthedocs.io/en/stable/releasenotes/8.3.0.html#buffer-overflow",
+            "https://pillow.readthedocs.io/en/stable/releasenotes/index.html",
+            "https://ubuntu.com/security/notices/USN-5227-1",
+            "https://ubuntu.com/security/notices/USN-5227-2"
+          ],
+          "PublishedDate": "2021-07-13T17:15:00Z",
+          "LastModifiedDate": "2021-09-20T12:20:00Z"
+        },
+        {
+          "VulnerabilityID": "CVE-2022-22815",
+          "PkgName": "pillow",
+          "InstalledVersion": "8.2.0",
+          "FixedVersion": "9.0.0",
+          "Layer": {},
+          "SeveritySource": "ghsa-pip",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2022-22815",
+          "Title": "python-pillow: improperly initializes ImagePath.Path in path_getbbox() in path.c",
+          "Description": "path_getbbox in path.c in Pillow before 9.0.0 improperly initializes ImagePath.Path.",
+          "Severity": "CRITICAL",
+          "CweIDs": ["CWE-665"],
+          "CVSS": {
+            "nvd": {
+              "V2Vector": "AV:N/AC:L/Au:N/C:P/I:P/A:P",
+              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+              "V2Score": 7.5,
+              "V3Score": 9.8
+            },
+            "redhat": {
+              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+              "V3Score": 9.8
+            }
+          },
+          "References": [
+            "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-22815",
+            "https://github.com/advisories/GHSA-pw3c-h7wp-cvhx",
+            "https://github.com/python-pillow/Pillow/blob/c5d9223a8b5e9295d15b5a9b1ef1dae44c8499f3/src/path.c#L331",
+            "https://lists.debian.org/debian-lts-announce/2022/01/msg00018.html",
+            "https://nvd.nist.gov/vuln/detail/CVE-2022-22815",
+            "https://pillow.readthedocs.io/en/stable/releasenotes/9.0.0.html#fixed-imagepath-path-array-handling",
+            "https://ubuntu.com/security/notices/USN-5227-1",
+            "https://ubuntu.com/security/notices/USN-5227-2",
+            "https://www.debian.org/security/2022/dsa-5053"
+          ],
+          "PublishedDate": "2022-01-10T14:12:00Z",
+          "LastModifiedDate": "2022-02-10T15:08:00Z"
+        },
+        {
+          "VulnerabilityID": "CVE-2022-22817",
+          "PkgName": "pillow",
+          "InstalledVersion": "8.2.0",
+          "FixedVersion": "9.0.0",
+          "Layer": {},
+          "SeveritySource": "ghsa-pip",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2022-22817",
+          "Title": "python-pillow: PIL.ImageMath.eval allows evaluation of arbitrary expressions",
+          "Description": "PIL.ImageMath.eval in Pillow before 9.0.0 allows evaluation of arbitrary expressions, such as ones that use the Python exec method.",
+          "Severity": "CRITICAL",
+          "CVSS": {
+            "nvd": {
+              "V2Vector": "AV:N/AC:L/Au:N/C:P/I:P/A:P",
+              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+              "V2Score": 7.5,
+              "V3Score": 9.8
+            },
+            "redhat": {
+              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+              "V3Score": 9.8
+            }
+          },
+          "References": [
+            "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-22817",
+            "https://github.com/advisories/GHSA-8vj2-vxx3-667w",
+            "https://lists.debian.org/debian-lts-announce/2022/01/msg00018.html",
+            "https://nvd.nist.gov/vuln/detail/CVE-2022-22817",
+            "https://pillow.readthedocs.io/en/stable/releasenotes/9.0.0.html#fixed-imagepath-path-array-handling",
+            "https://pillow.readthedocs.io/en/stable/releasenotes/9.0.0.html#restrict-builtins-available-to-imagemath-eval",
+            "https://ubuntu.com/security/notices/USN-5227-1",
+            "https://ubuntu.com/security/notices/USN-5227-2",
+            "https://www.debian.org/security/2022/dsa-5053"
+          ],
+          "PublishedDate": "2022-01-10T14:12:00Z",
+          "LastModifiedDate": "2022-02-10T15:08:00Z"
+        },
+        {
+          "VulnerabilityID": "CVE-2021-23437",
+          "PkgName": "pillow",
+          "InstalledVersion": "8.2.0",
+          "FixedVersion": "8.3.2",
+          "Layer": {},
+          "SeveritySource": "ghsa-pip",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2021-23437",
+          "Title": "python-pillow: possible ReDoS via the getrgb function",
+          "Description": "The package pillow 5.2.0 and before 8.3.2 are vulnerable to Regular Expression Denial of Service (ReDoS) via the getrgb function.",
+          "Severity": "HIGH",
+          "CweIDs": ["CWE-125"],
+          "CVSS": {
+            "nvd": {
+              "V2Vector": "AV:N/AC:L/Au:N/C:N/I:N/A:P",
+              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+              "V2Score": 5,
+              "V3Score": 7.5
+            },
+            "redhat": {
+              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+              "V3Score": 7.5
+            }
+          },
+          "References": [
+            "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-23437",
+            "https://github.com/advisories/GHSA-98vv-pw6r-q6q4",
+            "https://github.com/python-pillow/Pillow/commit/9e08eb8f78fdfd2f476e1b20b7cf38683754866b",
+            "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/RNSG6VFXTAROGF7ACYLMAZNQV4EJ6I2C/",
+            "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/VKRCL7KKAKOXCVD7M6WC5OKFGL4L3SJT/",
+            "https://nvd.nist.gov/vuln/detail/CVE-2021-23437",
+            "https://pillow.readthedocs.io/en/stable/releasenotes/8.3.2.html",
+            "https://snyk.io/vuln/SNYK-PYTHON-PILLOW-1319443",
+            "https://ubuntu.com/security/notices/USN-5227-1",
+            "https://ubuntu.com/security/notices/USN-5227-2"
+          ],
+          "PublishedDate": "2021-09-03T16:15:00Z",
+          "LastModifiedDate": "2021-11-30T21:19:00Z"
+        }
+      ]
+    }
+  ]
+}

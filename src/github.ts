@@ -1,8 +1,20 @@
 import * as github from '@actions/github'
 import { Octokit } from '@octokit/rest'
 import { IssueOption, IssueResponse, TrivyIssue } from './interface.js'
-import { RequestError } from '@octokit/request-error'
 import * as core from '@actions/core'
+
+interface RequestErrorLike {
+  status: number
+  message: string
+}
+
+function isRequestError(error: unknown): error is RequestErrorLike {
+  if (typeof error === 'object' && error !== null) {
+    const err = error as Record<string, unknown>
+    return typeof err.status === 'number' && typeof err.message === 'string'
+  }
+  return false
+}
 
 export class GitHub {
   client: Octokit
@@ -46,7 +58,7 @@ export class GitHub {
     options: IssueOption & { hasFix?: boolean }
   ): Promise<IssueResponse> {
     try {
-      let labels = [...options.labels]
+      const labels = [...options.labels]
       if (options.enableFixLabel && options.hasFix) {
         labels.push(options.fixLabel!)
       }
@@ -74,7 +86,7 @@ export class GitHub {
     options: IssueOption & { hasFix?: boolean }
   ): Promise<IssueResponse> {
     try {
-      let labels = [...options.labels]
+      const labels = [...options.labels]
       if (options.enableFixLabel && options.hasFix) {
         labels.push(options.fixLabel!)
       }
@@ -84,7 +96,7 @@ export class GitHub {
         ...github.context.repo,
         issue_number: issueNumber,
         ...options,
-        labels: labels,
+        labels: labels
       })
 
       return {
@@ -126,30 +138,38 @@ export class GitHub {
       await this.client.issues.getLabel({
         ...github.context.repo,
         name: label
-      });
-      core.info(`Label "${label}" already exists.`);
-    } catch (error: any) {
-
+      })
+      core.info(`Label "${label}" already exists.`)
+    } catch (error: unknown) {
       // Check if it's a 404 error
-      if (error.status === 404) {
-        core.info(`Label "${label}" does not exist. Creating it...`);
+      if (isRequestError(error) && error.status === 404) {
+        core.info(`Label "${label}" does not exist. Creating it...`)
         // Generate a random hex color
-        const randomColor = Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+        const randomColor = Math.floor(Math.random() * 16777215)
+          .toString(16)
+          .padStart(6, '0')
 
         try {
           await this.client.issues.createLabel({
             ...github.context.repo,
             name: label,
-            color: randomColor, // GitHub requires a color when creating a label
-          });
-          core.info(`Label "${label}" created successfully.`);
-        } catch (createError: any) {
-          core.error(`Failed to create label "${label}": ${createError.message}`);
-          throw new Error(`Failed to create label "${label}": ${createError.message}`);
+            color: randomColor // GitHub requires a color when creating a label
+          })
+          core.info(`Label "${label}" created successfully.`)
+        } catch (createError: unknown) {
+          if (isRequestError(createError)) {
+            core.error(
+              `Failed to create label "${label}": ${createError.message}`
+            )
+            throw new Error(
+              `Failed to create label "${label}": ${createError.message}`
+            )
+          }
+          throw createError
         }
       } else {
-        core.error(`Unexpected error while checking label "${label}": ${error.message}`);
-        throw new Error(`Error checking or creating label "${label}": ${error.message}`);
+        core.error(`Unexpected error while checking label "${label}": ${error}`)
+        throw new Error(`Error checking or creating label "${label}": ${error}`)
       }
     }
   }

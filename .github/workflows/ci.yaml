@@ -57,6 +57,7 @@ jobs:
         id: test-action
         uses: ./
         with:
+          filename: .github/workflows/sample.json
           dry-run: true
           create-labels: true
           enable-fix-label: true
