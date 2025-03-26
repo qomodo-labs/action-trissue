@@ -84,7 +84,7 @@ export class GitHub {
         ...github.context.repo,
         issue_number: issueNumber,
         ...options,
-        labels: labels
+        labels: labels,
       })
 
       return {
@@ -126,33 +126,30 @@ export class GitHub {
       await this.client.issues.getLabel({
         ...github.context.repo,
         name: label
-      })
-      core.info(`Label "${label}" already exists.`)
-    } catch (error: unknown) {
-      if (error instanceof RequestError) {
-        // Use RequestError (or the appropriate Octokit error type)
-        if (error.status === 404) {
-          core.info(`Label "${label}" does not exist. Creating it...`)
+      });
+      core.info(`Label "${label}" already exists.`);
+    } catch (error: any) {
+
+      // Check if it's a 404 error
+      if (error.status === 404) {
+        core.info(`Label "${label}" does not exist. Creating it...`);
+        // Generate a random hex color
+        const randomColor = Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+
+        try {
           await this.client.issues.createLabel({
             ...github.context.repo,
-            name: label
-          })
-          core.info(`Label "${label}" created successfully.`)
-        } else {
-          throw new Error(
-            `Error checking or creating label "${label}": ${error.message}`
-          )
+            name: label,
+            color: randomColor, // GitHub requires a color when creating a label
+          });
+          core.info(`Label "${label}" created successfully.`);
+        } catch (createError: any) {
+          core.error(`Failed to create label "${label}": ${createError.message}`);
+          throw new Error(`Failed to create label "${label}": ${createError.message}`);
         }
-      } else if (error instanceof Error) {
-        // Handle other standard JavaScript errors
-        throw new Error(
-          `Error checking or creating label "${label}": ${error.message}`
-        )
       } else {
-        // Handle cases where error is not an Error instance
-        throw new Error(
-          `Error checking or creating label "${label}": An unknown error occurred.`
-        )
+        core.error(`Unexpected error while checking label "${label}": ${error.message}`);
+        throw new Error(`Error checking or creating label "${label}": ${error.message}`);
       }
     }
   }

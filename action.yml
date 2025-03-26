@@ -1,6 +1,6 @@
-name: 'Trivy Issue Reporter'
-description: 'Creates GitHub Issues from Trivy scan results'
-author: 'Periphery Security'
+name: "Trivy Issue Reporter"
+description: "Creates GitHub Issues from Trivy scan results"
+author: "Periphery Security"
 
 branding:
   icon: shield
@@ -8,38 +8,38 @@ branding:
 
 inputs:
   token:
-    description: 'GitHub token'
+    description: "GitHub token"
     required: true
   filename:
-    description: 'Filename containing Trivy scan results, in JSON format'
+    description: "Filename containing Trivy scan results, in JSON format"
     required: true
   labels:
-    description: 'Issue labels, separated by comma'
+    description: "Issue labels, separated by comma"
     required: false
-    default: 'trivy,vulnerability'
+    default: "trivy,vulnerability"
   assignees:
-    description: 'Issue assignees, separated by comma'
+    description: "Issue assignees, separated by comma"
     required: false
   project-id:
-    description: 'Project ID to associate the issue with'
+    description: "Project ID to associate the issue with"
     required: false
   create-labels:
     description: "Create the labels if they don't already exist"
     required: false
-    default: 'false'
+    default: "false"
   enable-fix-label:
-    description: 'Enable adding the fix label if a fix is available'
+    description: "Enable adding the fix label if a fix is available"
     required: false
-    default: 'false'
+    default: "false"
   fix-label:
-    description: 'Fix label to be added if a fix is available'
+    description: "Fix label to be added if a fix is available"
     required: false
-    default: 'fix-available'
+    default: "fix-available"
   dry-run:
-    description: 'Perform a dry run, doesnt actually create issues or labels'
+    description: "Perform a dry run, doesnt actually create issues or labels"
     required: false
-    default: 'false'
+    default: "false"
 
 runs:
-  using: 'node20' # Or the node version you are using
-  main: 'dist/index.js'
+  using: "node20" # Or the node version you are using
+  main: "dist/index.js"
