@@ -27315,7 +27315,7 @@ function parseResults(data, existing_issues) {
             for (const vulnerability of vulnerabilities) {
                 const package_name = vulnerability['PkgName'];
                 const package_version = vulnerability['InstalledVersion'];
-                const package_fixed_version = vulnerability['FixedVersion'] || '';
+                const package_fixed_version = vulnerability['FixedVersion'] || undefined;
                 const pkg = `${package_name}-${package_version}`;
                 // Include VulnerabilityID in the identifier to ensure uniqueness per vulnerability.
                 const issueIdentifier = `${package_name.toLowerCase()} ${package_version.toLowerCase()} ${vulnerability.VulnerabilityID.toLowerCase()}`;
@@ -35160,71 +35160,65 @@ class GitHub {
             throw new Error(`Failed to fetch issues: ${err}`);
         }
     }
-    async createIssue(options) {
+    async handleIssueOperation(operation, issueNumber, options) {
         try {
-            const labels = [...options.labels];
-            if (options.enableFixLabel && options.hasFix) {
-                labels.push(options.fixLabel);
+            let data;
+            const params = { ...githubExports.context.repo };
+            if (operation === 'create') {
+                const labels = [...(options?.labels || [])];
+                if (options?.enableFixLabel && options?.hasFix) {
+                    labels.push(options.fixLabel);
+                }
+                params.title = options?.title;
+                params.body = options?.body;
+                params.labels = labels;
+                params.assignees = options?.assignees;
+                data = (await this.client.issues.create(params)).data;
             }
-            const { data: issue } = await this.client.issues.create({
-                ...githubExports.context.repo,
-                ...options,
-                labels: labels
-            });
-            const issueResponse = {
-                issueNumber: issue.number,
-                htmlUrl: issue.html_url
-            };
-            coreExports.info(`Created issue: ${issue.html_url} (Issue Number: ${issue.number})`);
-            return issueResponse;
-        }
-        catch (err) {
-            throw new Error(`Failed to create issue: ${err}`);
-        }
-    }
-    async updateIssue(issueNumber, options) {
-        try {
-            const labels = [...options.labels];
-            if (options.enableFixLabel && options.hasFix) {
-                labels.push(options.fixLabel);
+            else {
+                params.issue_number = issueNumber;
+                params.state = operation === 'close' ? 'closed' : 'open';
+                if (operation === 'update' && options) {
+                    const labels = [...(options.labels || [])];
+                    if (options.enableFixLabel && options.hasFix) {
+                        labels.push(options.fixLabel);
+                    }
+                    params.title = options.title;
+                    params.body = options.body;
+                    params.labels = labels;
+                    params.assignees = options.assignees;
+                }
+                data = (await this.client.issues.update(params)).data;
             }
-            coreExports.info(`Updating issue ${issueNumber} with: ${options} ${labels}`);
-            const { data: issue } = await this.client.issues.update({
-                ...githubExports.context.repo,
-                issue_number: issueNumber,
-                ...options,
-                labels: labels
-            });
+            const actionVerb = operation === 'create'
+                ? 'Created'
+                : operation === 'update'
+                    ? 'Updated'
+                    : operation === 'reopen'
+                        ? 'Reopened'
+                        : 'Closed';
+            coreExports.info(`${actionVerb} issue: ${data.html_url} (Issue Number: ${data.number})`);
             return {
-                issueNumber: issue.number,
-                htmlUrl: issue.html_url ?? '' // Use nullish coalescing in case html_url is undefined
-            };
-        }
-        catch (err) {
-            throw new Error(`Failed to update issue: ${err}`);
-        }
-    }
-    async closeIssue(issueNumber) {
-        try {
-            const { data: issue } = await this.client.issues.update({
-                ...githubExports.context.repo,
-                issue_number: issueNumber,
-                state: 'closed'
-            });
-            coreExports.info(`Closed issue #${issueNumber}`);
-            return {
-                issueNumber: issue.number,
-                htmlUrl: issue.html_url ?? '' // Use nullish coalescing in case html_url is undefined
+                issueNumber: data.number,
+                htmlUrl: data.html_url ?? ''
             };
         }
         catch (error) {
-            if (error instanceof Error) {
-                throw new Error(`Failed to close issue #${issueNumber}: ${error.message}`);
-            }
-            else {
-                throw new Error(`Failed to close issue #${issueNumber}: An unknown error occurred.`);
-            }
+            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+            throw new Error(`Failed to ${operation} issue${issueNumber ? ` #${issueNumber}` : ''}: ${errorMessage}`);
         }
+    }
+    async createIssue(options) {
+        return this.handleIssueOperation('create', null, options);
+    }
+    async updateIssue(issueNumber, options) {
+        return this.handleIssueOperation('update', issueNumber, options);
+    }
+    async closeIssue(issueNumber) {
+        return this.handleIssueOperation('close', issueNumber);
+    }
+    async reopenIssue(issueNumber) {
+        return this.handleIssueOperation('reopen', issueNumber);
     }
     async createLabelIfMissing(label) {
         try {
@@ -35368,6 +35362,15 @@ async function main() {
                         issuesUpdated.push(await github.updateIssue(existingIssue.number, updateIssueOption));
                     }
                 }
+                else if (existingIssue.state === 'closed') {
+                    // Issue is closed, but vulnerability still exists, reopen it
+                    if (inputs.dryRun) {
+                        coreExports.info(`[Dry Run] Would reopen issue #${existingIssue.number}`);
+                    }
+                    else {
+                        issuesUpdated.push(await github.reopenIssue(existingIssue.number));
+                    }
+                }
             }
             else {
                 // Issue doesn't exist, create it
@@ -35381,7 +35384,7 @@ async function main() {
                     coreExports.info(`[Dry Run] Would create issue with: ${issueOption}`);
                 }
                 else {
-                    issuesUpdated.push(await github.createIssue(issueOption));
+                    issuesCreated.push(await github.createIssue(issueOption));
                 }
             }
         }

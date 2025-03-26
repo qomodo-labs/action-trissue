@@ -1,7 +1,7 @@
 {
   "name": "action-trissue",
   "description": "GitHub Action to report Trivy scan results as GitHub issues",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "author": "stemarks",
   "type": "module",
   "private": true,
