@@ -57,6 +57,7 @@ jobs:
         id: test-action
         uses: ./
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           filename: .github/workflows/sample.json
           dry-run: true
           create-labels: true
