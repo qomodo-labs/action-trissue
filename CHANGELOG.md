@@ -1,3 +1,9 @@
+## [1.0.2](https://github.com/qomodo-labs/action-trissue/compare/1.0.1...1.0.2) (2025-03-26)
+
+### Bug Fixes
+
+* multiple linting errros fixed ([8536672](https://github.com/qomodo-labs/action-trissue/commit/853667233eb5d3e95efc909f953cb2a02ac9747e))
+
 ## [1.0.1](https://github.com/qomodo-labs/action-trissue/compare/1.0.0...1.0.1) (2025-03-26)
 
 ### Bug Fixes

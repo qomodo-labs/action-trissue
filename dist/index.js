@@ -35121,6 +35121,13 @@ const Octokit = Octokit$1.plugin(requestLog, legacyRestEndpointMethods, paginate
   }
 );
 
+function isRequestError(error) {
+    if (typeof error === 'object' && error !== null) {
+        const err = error;
+        return typeof err.status === 'number' && typeof err.message === 'string';
+    }
+    return false;
+}
 class GitHub {
     client;
     constructor(token) {
@@ -35155,7 +35162,7 @@ class GitHub {
     }
     async createIssue(options) {
         try {
-            let labels = [...options.labels];
+            const labels = [...options.labels];
             if (options.enableFixLabel && options.hasFix) {
                 labels.push(options.fixLabel);
             }
@@ -35177,7 +35184,7 @@ class GitHub {
     }
     async updateIssue(issueNumber, options) {
         try {
-            let labels = [...options.labels];
+            const labels = [...options.labels];
             if (options.enableFixLabel && options.hasFix) {
                 labels.push(options.fixLabel);
             }
@@ -35229,7 +35236,7 @@ class GitHub {
         }
         catch (error) {
             // Check if it's a 404 error
-            if (error.status === 404) {
+            if (isRequestError(error) && error.status === 404) {
                 coreExports.info(`Label "${label}" does not exist. Creating it...`);
                 // Generate a random hex color
                 const randomColor = Math.floor(Math.random() * 16777215)
@@ -35244,13 +35251,16 @@ class GitHub {
                     coreExports.info(`Label "${label}" created successfully.`);
                 }
                 catch (createError) {
-                    coreExports.error(`Failed to create label "${label}": ${createError.message}`);
-                    throw new Error(`Failed to create label "${label}": ${createError.message}`);
+                    if (isRequestError(createError)) {
+                        coreExports.error(`Failed to create label "${label}": ${createError.message}`);
+                        throw new Error(`Failed to create label "${label}": ${createError.message}`);
+                    }
+                    throw createError;
                 }
             }
             else {
-                coreExports.error(`Unexpected error while checking label "${label}": ${error.message}`);
-                throw new Error(`Error checking or creating label "${label}": ${error.message}`);
+                coreExports.error(`Unexpected error while checking label "${label}": ${error}`);
+                throw new Error(`Error checking or creating label "${label}": ${error}`);
             }
         }
     }
