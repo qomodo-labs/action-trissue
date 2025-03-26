@@ -54,84 +54,84 @@ export class GitHub {
     }
   }
 
-  async createIssue(
-    options: IssueOption & { hasFix?: boolean }
+  private async handleIssueOperation(
+    operation: 'create' | 'update' | 'reopen' | 'close',
+    issueNumber: number | null,
+    options?: IssueOption & { hasFix: boolean }
   ): Promise<IssueResponse> {
     try {
-      const labels = [...options.labels]
-      if (options.enableFixLabel && options.hasFix) {
-        labels.push(options.fixLabel!)
-      }
-      const { data: issue } = await this.client.issues.create({
-        ...github.context.repo,
-        ...options,
-        labels: labels
-      })
-      const issueResponse: IssueResponse = {
-        issueNumber: issue.number,
-        htmlUrl: issue.html_url
+      let data
+      const params: any = { ...github.context.repo }
+
+      if (operation === 'create') {
+        const labels = [...(options?.labels || [])]
+        if (options?.enableFixLabel && options?.hasFix) {
+          labels.push(options.fixLabel!)
+        }
+        params.title = options?.title
+        params.body = options?.body
+        params.labels = labels
+        params.assignees = options?.assignees
+        data = (await this.client.issues.create(params)).data
+      } else {
+        params.issue_number = issueNumber!
+        params.state = operation === 'close' ? 'closed' : 'open'
+
+        if (operation === 'update' && options) {
+          const labels = [...(options.labels || [])]
+          if (options.enableFixLabel && options.hasFix) {
+            labels.push(options.fixLabel!)
+          }
+          params.title = options.title
+          params.body = options.body
+          params.labels = labels
+          params.assignees = options.assignees
+        }
+
+        data = (await this.client.issues.update(params)).data
       }
 
+      const actionVerb =
+        operation === 'create'
+          ? 'Created'
+          : operation === 'update'
+            ? 'Updated'
+            : operation === 'reopen'
+              ? 'Reopened'
+              : 'Closed'
       core.info(
-        `Created issue: ${issue.html_url} (Issue Number: ${issue.number})`
+        `${actionVerb} issue: ${data.html_url} (Issue Number: ${data.number})`
       )
 
-      return issueResponse
-    } catch (err) {
-      throw new Error(`Failed to create issue: ${err}`)
+      return {
+        issueNumber: data.number,
+        htmlUrl: data.html_url ?? ''
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unknown error occurred.'
+      throw new Error(
+        `Failed to ${operation} issue${issueNumber ? ` #${issueNumber}` : ''}: ${errorMessage}`
+      )
     }
+  }
+
+  async createIssue(
+    options: IssueOption & { hasFix: boolean }
+  ): Promise<IssueResponse> {
+    return this.handleIssueOperation('create', null, options)
   }
   async updateIssue(
     issueNumber: number,
-    options: IssueOption & { hasFix?: boolean }
+    options: IssueOption & { hasFix: boolean }
   ): Promise<IssueResponse> {
-    try {
-      const labels = [...options.labels]
-      if (options.enableFixLabel && options.hasFix) {
-        labels.push(options.fixLabel!)
-      }
-      core.info(`Updating issue ${issueNumber} with: ${options} ${labels}`)
-
-      const { data: issue } = await this.client.issues.update({
-        ...github.context.repo,
-        issue_number: issueNumber,
-        ...options,
-        labels: labels
-      })
-
-      return {
-        issueNumber: issue.number,
-        htmlUrl: issue.html_url ?? '' // Use nullish coalescing in case html_url is undefined
-      }
-    } catch (err) {
-      throw new Error(`Failed to update issue: ${err}`)
-    }
+    return this.handleIssueOperation('update', issueNumber, options)
   }
   async closeIssue(issueNumber: number): Promise<IssueResponse> {
-    try {
-      const { data: issue } = await this.client.issues.update({
-        ...github.context.repo,
-        issue_number: issueNumber,
-        state: 'closed'
-      })
-
-      core.info(`Closed issue #${issueNumber}`)
-
-      return {
-        issueNumber: issue.number,
-        htmlUrl: issue.html_url ?? '' // Use nullish coalescing in case html_url is undefined
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(
-          `Failed to close issue #${issueNumber}: ${error.message}`
-        )
-      } else {
-        throw new Error(
-          `Failed to close issue #${issueNumber}: An unknown error occurred.`
-        )
-      }
-    }
+    return this.handleIssueOperation('close', issueNumber)
+  }
+  async reopenIssue(issueNumber: number): Promise<IssueResponse> {
+    return this.handleIssueOperation('reopen', issueNumber)
   }
   async createLabelIfMissing(label: string): Promise<void> {
     try {

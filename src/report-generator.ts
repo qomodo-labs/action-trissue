@@ -59,7 +59,7 @@ export function parseResults(
       for (const vulnerability of vulnerabilities) {
         const package_name = vulnerability['PkgName']
         const package_version = vulnerability['InstalledVersion']
-        const package_fixed_version = vulnerability['FixedVersion'] || ''
+        const package_fixed_version = vulnerability['FixedVersion'] || undefined
         const pkg = `${package_name}-${package_version}`
         // Include VulnerabilityID in the identifier to ensure uniqueness per vulnerability.
         const issueIdentifier = `${package_name.toLowerCase()} ${package_version.toLowerCase()} ${vulnerability.VulnerabilityID.toLowerCase()}`

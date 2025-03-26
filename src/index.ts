@@ -88,7 +88,7 @@ async function main() {
           issue.body !== existingIssue.body
         ) {
           // Update the issue
-          const updateIssueOption: IssueOption & { hasFix?: boolean } = {
+          const updateIssueOption: IssueOption & { hasFix: boolean } = {
             title: issue.title,
             body: issue.body,
             labels: inputs.issue.labels, // Use the labels from inputs
@@ -109,6 +109,13 @@ async function main() {
               await github.updateIssue(existingIssue.number, updateIssueOption)
             )
           }
+        } else if (existingIssue.state === 'closed') {
+          // Issue is closed, but vulnerability still exists, reopen it
+          if (inputs.dryRun) {
+            core.info(`[Dry Run] Would reopen issue #${existingIssue.number}`)
+          } else {
+            issuesUpdated.push(await github.reopenIssue(existingIssue.number))
+          }
         }
       } else {
         // Issue doesn't exist, create it
@@ -121,7 +128,7 @@ async function main() {
         if (inputs.dryRun) {
           core.info(`[Dry Run] Would create issue with: ${issueOption}`)
         } else {
-          issuesUpdated.push(await github.createIssue(issueOption))
+          issuesCreated.push(await github.createIssue(issueOption))
         }
       }
     }
