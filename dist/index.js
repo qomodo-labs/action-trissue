@@ -27315,7 +27315,7 @@ function parseResults(data, existing_issues) {
             for (const vulnerability of vulnerabilities) {
                 const package_name = vulnerability['PkgName'];
                 const package_version = vulnerability['InstalledVersion'];
-                const package_fixed_version = vulnerability['FixedVersion'];
+                const package_fixed_version = vulnerability['FixedVersion'] || '';
                 const pkg = `${package_name}-${package_version}`;
                 // Include VulnerabilityID in the identifier to ensure uniqueness per vulnerability.
                 const issueIdentifier = `${package_name.toLowerCase()} ${package_version.toLowerCase()} ${vulnerability.VulnerabilityID.toLowerCase()}`;
@@ -35228,27 +35228,29 @@ class GitHub {
             coreExports.info(`Label "${label}" already exists.`);
         }
         catch (error) {
-            if (error instanceof RequestError$1) {
-                // Use RequestError (or the appropriate Octokit error type)
-                if (error.status === 404) {
-                    coreExports.info(`Label "${label}" does not exist. Creating it...`);
+            // Check if it's a 404 error
+            if (error.status === 404) {
+                coreExports.info(`Label "${label}" does not exist. Creating it...`);
+                // Generate a random hex color
+                const randomColor = Math.floor(Math.random() * 16777215)
+                    .toString(16)
+                    .padStart(6, '0');
+                try {
                     await this.client.issues.createLabel({
                         ...githubExports.context.repo,
-                        name: label
+                        name: label,
+                        color: randomColor // GitHub requires a color when creating a label
                     });
                     coreExports.info(`Label "${label}" created successfully.`);
                 }
-                else {
-                    throw new Error(`Error checking or creating label "${label}": ${error.message}`);
+                catch (createError) {
+                    coreExports.error(`Failed to create label "${label}": ${createError.message}`);
+                    throw new Error(`Failed to create label "${label}": ${createError.message}`);
                 }
             }
-            else if (error instanceof Error) {
-                // Handle other standard JavaScript errors
-                throw new Error(`Error checking or creating label "${label}": ${error.message}`);
-            }
             else {
-                // Handle cases where error is not an Error instance
-                throw new Error(`Error checking or creating label "${label}": An unknown error occurred.`);
+                coreExports.error(`Unexpected error while checking label "${label}": ${error.message}`);
+                throw new Error(`Error checking or creating label "${label}": ${error.message}`);
             }
         }
     }
