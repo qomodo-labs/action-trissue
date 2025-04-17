@@ -100,11 +100,12 @@ export class GitHub {
               ? 'Reopened'
               : 'Closed'
       core.info(
-        `${actionVerb} issue: ${data.html_url} (Issue Number: ${data.number})`
+        `${actionVerb} issue: ${data.html_url} ${data.title} (Issue Number: ${data.number})`
       )
 
       return {
         issueNumber: data.number,
+        title: data.title ?? '',
         htmlUrl: data.html_url ?? ''
       }
     } catch (error) {

@@ -36,11 +36,12 @@ without a fix.
 
 ## Outputs
 
-|   Parameter    | Description                                                               |
-| :------------: | :------------------------------------------------------------------------ |
-| issues-created | A list of dictionaries containing the created issues issue number and URL |
-| issues-updated | A list of dictionaries containing the updated issues issue number and URL |
-| issues-closed  | A list of dictionaries containing the closed issues issue number and URL  |
+|       Parameter       | Description                                                                      |
+| :-------------------: | :------------------------------------------------------------------------------- |
+|    created_issues     | A list of dictionaries containing the created issues issue number, title and URL |
+|    updated_issues     | A list of dictionaries containing the updated issues issue number, title and URL |
+|     closed_issues     | A list of dictionaries containing the closed issues issue number, title and URL  |
+| fixable_vulnerability | A boolean indicating if a fix is available for an issue                          |
 
 ## Example Workflow
 

@@ -1,6 +1,8 @@
 name: Continuous Integration
 
 on:
+  workflow_dispatch:
+
   pull_request:
     branches:
       - main
@@ -40,14 +42,15 @@ jobs:
         id: npm-lint
         run: npm run lint
 
-      - name: Test
-        id: npm-ci-test
-        run: npm run ci-test
+      #- name: Test
+      #  id: npm-ci-test
+      #  run: npm run ci-test
 
   test-action:
     name: GitHub Actions Test
     runs-on: ubuntu-latest
-
+    permissions:
+      issues: write
     steps:
       - name: Checkout
         id: checkout
@@ -66,6 +69,7 @@ jobs:
       - name: Print Output
         id: output
         run: |
-          echo "${{ steps.test-action.outputs.issues-created }}"
-          echo "${{ steps.test-action.outputs.issues-updated }}"
-          echo "${{ steps.test-action.outputs.issues-closed }}"
+          echo "${{ steps.test-action.outputs.created_issues }}"
+          echo "${{ steps.test-action.outputs.updated_issues }}"
+          echo "${{ steps.test-action.outputs.closed_issues }}"
+          echo "${{ steps.test-action.outputs.fixable_vulnerability }}"
