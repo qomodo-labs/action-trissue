@@ -108,45 +108,45 @@ async function main() {
 
 
         if (existingIssue) {
-                  // Issue exists, check if we need to update it
-                  const needsUpdate = (
-                    (issue.hasFix && inputs.issue.enableFixLabel && inputs.issue.fixLabel && !existingIssue.labels.includes(inputs.issue.fixLabel)) || // Add fix label if needed
-                    (!issue.hasFix && inputs.issue.enableFixLabel && inputs.issue.fixLabel && existingIssue.labels.includes(inputs.issue.fixLabel)) || // Remove fix label if needed
-                    issue.body !== existingIssue.body // Body changed
-                  );
-        
-                  if (needsUpdate && existingIssue.state === 'open') {
-                    if (inputs.dryRun) {
-                      console.log(
-                        `[Dry Run] Would update issue #${existingIssue.number} ('${issue.title}')`// Removed options dump
-                      )
-                    } else {
-                      core.info(`Updating issue #${existingIssue.number} ('${issue.title}')`);
-                      issuesUpdated.push(
-                        await github.updateIssue(existingIssue.number, issueOptionBase)
-                      )
-                    }
-                  } else if (existingIssue.state === 'closed') {
-                    // Issue is closed, but vulnerability still exists, reopen it
-                    if (inputs.dryRun) {
-                      core.info(`[Dry Run] Would reopen issue #${existingIssue.number} ('${issue.title}')`)
-                    } else {
-                      core.info(`Reopening issue #${existingIssue.number} ('${issue.title}')`);
-                      // Reopening should likely be tracked under 'updated' or a separate 'reopened' list
-                      // Using 'updated' for now as per original logic tendency
-                      issuesUpdated.push(await github.reopenIssue(existingIssue.number))
-                    }
-                  } else {
-                    core.info(`No update needed for issue #${existingIssue.number} ('${issue.title}')`);
-                  }
-                }
+          // Issue exists, check if we need to update it
+          const needsUpdate = (
+            (issue.hasFix && inputs.issue.enableFixLabel && inputs.issue.fixLabel && !existingIssue.labels.includes(inputs.issue.fixLabel)) || // Add fix label if needed
+            (!issue.hasFix && inputs.issue.enableFixLabel && inputs.issue.fixLabel && existingIssue.labels.includes(inputs.issue.fixLabel)) || // Remove fix label if needed
+            issue.body !== existingIssue.body // Body changed
+          );
+
+          if (needsUpdate && existingIssue.state === 'open') {
+            if (inputs.dryRun) {
+              console.log(
+                `[Dry Run] Would update issue #${existingIssue.number} ('${issue.title}')`// Removed options dump
+              )
+            } else {
+              core.info(`Updating issue #${existingIssue.number} ('${issue.title}')`);
+              issuesUpdated.push(
+                await github.updateIssue(existingIssue.number, issueOptionBase)
+              )
+            }
+          } else if (existingIssue.state === 'closed') {
+            // Issue is closed, but vulnerability still exists, reopen it
+            if (inputs.dryRun) {
+              core.info(`[Dry Run] Would reopen issue #${existingIssue.number} ('${issue.title}')`)
+            } else {
+              core.info(`Reopening issue #${existingIssue.number} ('${issue.title}')`);
+              // Reopening should likely be tracked under 'updated' or a separate 'reopened' list
+              // Using 'updated' for now as per original logic tendency
+              issuesUpdated.push(await github.reopenIssue(existingIssue.number))
+            }
+          } else {
+            core.info(`No update needed for issue #${existingIssue.number} ('${issue.title}')`);
+          }
+        }
         else if (inputs.dryRun) {
-                    core.info(`[Dry Run] Would create issue with title: ${issue.title}`) // Simplified log
-                  }
+          core.info(`[Dry Run] Would create issue with title: ${issue.title}`) // Simplified log
+        }
         else {
-                    core.info(`Creating issue with title: ${issue.title}`);
-                    issuesCreated.push(await github.createIssue(issueOptionBase))
-                  }
+          core.info(`Creating issue with title: ${issue.title}`);
+          issuesCreated.push(await github.createIssue(issueOptionBase))
+        }
       }
     }
 
