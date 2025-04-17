@@ -27,8 +27,8 @@ export default [
       '**/dist',
       '**/linter',
       '**/node_modules',
-      'CHANGELOG.md',
-      'README.md'
+      '**/CHANGELOG.md',
+      '**/README.md'
     ]
   },
   ...compat.extends(
