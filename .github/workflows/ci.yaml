@@ -61,7 +61,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           filename: .github/workflows/sample.json
-          dry-run: true
+          #dry-run: true
           create-labels: true
           enable-fix-label: true
 
