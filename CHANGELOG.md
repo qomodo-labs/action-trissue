@@ -2,7 +2,8 @@
 
 ### Features
 
-* now re-opens closed issues if they are not fixed ([9d85f70](https://github.com/qomodo-labs/action-trissue/commit/9d85f70a4e77b7b2999a1f51726846c7d2879ce9))
+- now re-opens closed issues if they are not fixed
+  ([9d85f70](https://github.com/qomodo-labs/action-trissue/commit/9d85f70a4e77b7b2999a1f51726846c7d2879ce9))
 
 ## [1.0.2](https://github.com/qomodo-labs/action-trissue/compare/1.0.1...1.0.2) (2025-03-26)
 
