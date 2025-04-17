@@ -2,7 +2,8 @@
 
 ### Features
 
-* add more outputs ([5e007a2](https://github.com/stemarks/action-trissue/commit/5e007a2dbbb899b0d41f8175767a2222f557fdae))
+- add more outputs
+  ([5e007a2](https://github.com/stemarks/action-trissue/commit/5e007a2dbbb899b0d41f8175767a2222f557fdae))
 
 ## 1.0.0 (2025-04-17)
 
