@@ -1,8 +1,15 @@
+## [1.2.0](https://github.com/qomodo-labs/action-trissue/compare/1.1.0...1.2.0) (2025-04-17)
+
+### Features
+
+* add outputs ([04c0551](https://github.com/qomodo-labs/action-trissue/commit/04c05519c995f40139fc3875fdf37964b0f4e145))
+
 ## [1.1.0](https://github.com/qomodo-labs/action-trissue/compare/1.0.2...1.1.0) (2025-03-26)
 
 ### Features
 
-* now re-opens closed issues if they are not fixed ([9d85f70](https://github.com/qomodo-labs/action-trissue/commit/9d85f70a4e77b7b2999a1f51726846c7d2879ce9))
+- now re-opens closed issues if they are not fixed
+  ([9d85f70](https://github.com/qomodo-labs/action-trissue/commit/9d85f70a4e77b7b2999a1f51726846c7d2879ce9))
 
 ## [1.0.2](https://github.com/qomodo-labs/action-trissue/compare/1.0.1...1.0.2) (2025-03-26)
 
