@@ -42,6 +42,7 @@ export interface IssueOption {
 
 export interface IssueResponse {
   issueNumber: number
+  title: string // Add this line
   htmlUrl: string
 }
 

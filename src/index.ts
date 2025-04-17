@@ -2,9 +2,15 @@ import * as process from 'process'
 import * as fs from 'fs/promises'
 import * as core from '@actions/core'
 import { generateIssues, parseResults } from './report-generator.js'
-import { IssueOption, IssueResponse, ReportDict } from './interface.js'
+import {
+  IssueOption,
+  IssueResponse,
+  ReportDict,
+  TrivyIssue
+} from './interface.js' // Added TrivyIssue
 import { GitHub } from './github.js'
 import { Inputs } from './inputs.js'
+import { Issue } from './dataclass.js' // Added Issue import
 
 function abort(message: string, error?: Error): never {
   console.error(`Error: ${message}`)
@@ -23,15 +29,18 @@ async function main() {
 
   // Initialise arrays to store created, updated and closed issues
   const issuesCreated: IssueResponse[] = []
-  const issuesUpdated: { issueNumber: number }[] = []
+  // Updated issues need the IssueResponse format too if we want title/url
+  const issuesUpdated: IssueResponse[] = []
   const issuesClosed: IssueResponse[] = []
+  let fixableVulnerabilityExists = false // Initialize the new output flag
 
   try {
     // Create GitHub labels if createLabels is true and the labels dont already exist
     if (inputs.issue.createLabels) {
       const labelsToCreate = [...inputs.issue.labels]
-      if (inputs.issue.enableFixLabel) {
-        labelsToCreate.push(inputs.issue.fixLabel!)
+      if (inputs.issue.enableFixLabel && inputs.issue.fixLabel) {
+        // Check if fixLabel exists
+        labelsToCreate.push(inputs.issue.fixLabel)
       }
       for (const label of labelsToCreate) {
         if (inputs.dryRun) {
@@ -46,97 +55,144 @@ async function main() {
     const trivyRaw = await fs.readFile(inputs.issue.filename, 'utf-8')
     const reportData = JSON.parse(trivyRaw) as ReportDict // Data is now defined here.
 
-    // Fetch existing Trivy issues from GitHub and filter out duplicates using a Set
-    const existingIssues = await github.getTrivyIssues(inputs.issue.labels)
+    // Fetch existing Trivy issues from GitHub
+    const existingTrivyIssues: TrivyIssue[] = await github.getTrivyIssues(
+      inputs.issue.labels
+    ) // Renamed variable
 
-    const reports = parseResults(reportData, existingIssues)
+    const reports = parseResults(reportData, existingTrivyIssues)
 
-    if (reports === null && existingIssues.length > 0) {
-      core.info(
-        'No reports found but open issues were found. Closing existing issues.'
-      )
-      for (const issue of existingIssues) {
+    // --- Logic to close stale issues ---
+    const reportIssueTitles = new Set(
+      reports?.map((r) =>
+        `${r.vulnerabilities[0].VulnerabilityID}: ${r.package_type} package ${r.package}`.toLowerCase()
+      ) || []
+    )
+
+    for (const existingIssue of existingTrivyIssues) {
+      // Close open issues that are no longer in the report
+      if (
+        existingIssue.state === 'open' &&
+        !reportIssueTitles.has(existingIssue.title.toLowerCase())
+      ) {
         if (inputs.dryRun) {
           core.info(
-            `[Dry Run] Would close issue: ${issue.number} - ${issue.title}`
+            `[Dry Run] Would close stale issue: #${existingIssue.number} - ${existingIssue.title}`
           )
         } else {
-          issuesClosed.push(await github.closeIssue(issue.number))
+          core.info(
+            `Closing stale issue: #${existingIssue.number} - ${existingIssue.title}`
+          )
+          issuesClosed.push(await github.closeIssue(existingIssue.number))
         }
       }
-      return
-    } else if (reports === null) {
-      core.info('No reports to create issues for')
-      return
+      // Check if any existing open issue has a fix label (relevant for the fixable_vulnerability output)
+      if (
+        existingIssue.state === 'open' &&
+        inputs.issue.enableFixLabel &&
+        inputs.issue.fixLabel &&
+        existingIssue.labels.includes(inputs.issue.fixLabel)
+      ) {
+        fixableVulnerabilityExists = true
+      }
     }
 
-    // Generate GitHub issues from the parsed report data
-    const issues = generateIssues(reports)
+    if (reports === null) {
+      core.info('No new vulnerabilities found in the report.')
+      // Existing issues closing logic is handled above
+    } else {
+      // Generate GitHub issues from the parsed report data
+      const issuesToProcess: Issue[] = generateIssues(reports) // Renamed variable
 
-    // Create GitHub issues from the parsed report data, excluding duplicates if found in existing issues
-    for (const issue of issues) {
-      //check if issue exists
-      const existingIssue = existingIssues.find(
-        (existingIssue) =>
-          existingIssue.title.toLowerCase() === issue.title.toLowerCase()
-      )
-      if (existingIssue) {
-        // Issue exists, check if we need to update it (e.g., if a fix is now available)
-        if (
-          (issue.hasFix &&
-            !existingIssue.labels.includes(inputs.issue.fixLabel!)) ||
-          issue.body !== existingIssue.body
-        ) {
-          // Update the issue
-          const updateIssueOption: IssueOption & { hasFix: boolean } = {
-            title: issue.title,
-            body: issue.body,
-            labels: inputs.issue.labels, // Use the labels from inputs
-            assignees: inputs.issue.assignees,
-            projectId: inputs.issue.projectId,
-            enableFixLabel: inputs.issue.enableFixLabel,
-            fixLabel: inputs.issue.fixLabel,
-            hasFix: issue.hasFix
-          }
+      // Check for fixable vulnerabilities among the new/updated issues
+      if (!fixableVulnerabilityExists) {
+        // Only check if not already found in existing issues
+        fixableVulnerabilityExists = issuesToProcess.some(
+          (issue) => issue.hasFix
+        )
+      }
 
-          if (inputs.dryRun) {
-            console.log(
-              `[Dry Run] Would update issue #${existingIssue.number} with:`,
-              updateIssueOption
-            )
-          } else {
-            issuesUpdated.push(
-              await github.updateIssue(existingIssue.number, updateIssueOption)
-            )
-          }
-        } else if (existingIssue.state === 'closed') {
-          // Issue is closed, but vulnerability still exists, reopen it
-          if (inputs.dryRun) {
-            core.info(`[Dry Run] Would reopen issue #${existingIssue.number}`)
-          } else {
-            issuesUpdated.push(await github.reopenIssue(existingIssue.number))
-          }
-        }
-      } else {
-        // Issue doesn't exist, create it
-        const issueOption = {
+      // Create/Update GitHub issues
+      for (const issue of issuesToProcess) {
+        // Use renamed variable
+        const existingIssue = existingTrivyIssues.find(
+          // Use renamed variable
+          (ei) => ei.title.toLowerCase() === issue.title.toLowerCase()
+        )
+        const issueOptionBase: IssueOption & { hasFix: boolean } = {
           title: issue.title,
           body: issue.body,
-          ...inputs.issue,
+          labels: inputs.issue.labels, // Use the labels from inputs
+          assignees: inputs.issue.assignees,
+          projectId: inputs.issue.projectId,
+          enableFixLabel: inputs.issue.enableFixLabel,
+          fixLabel: inputs.issue.fixLabel,
           hasFix: issue.hasFix
         }
-        if (inputs.dryRun) {
-          core.info(`[Dry Run] Would create issue with: ${issueOption}`)
+
+        if (existingIssue) {
+          // Issue exists, check if we need to update it
+          const needsUpdate =
+            (issue.hasFix &&
+              inputs.issue.enableFixLabel &&
+              inputs.issue.fixLabel &&
+              !existingIssue.labels.includes(inputs.issue.fixLabel)) || // Add fix label if needed
+            (!issue.hasFix &&
+              inputs.issue.enableFixLabel &&
+              inputs.issue.fixLabel &&
+              existingIssue.labels.includes(inputs.issue.fixLabel)) || // Remove fix label if needed
+            issue.body !== existingIssue.body // Body changed
+
+          if (needsUpdate && existingIssue.state === 'open') {
+            if (inputs.dryRun) {
+              console.log(
+                `[Dry Run] Would update issue #${existingIssue.number} ('${issue.title}')` // Removed options dump
+              )
+            } else {
+              core.info(
+                `Updating issue #${existingIssue.number} ('${issue.title}')`
+              )
+              issuesUpdated.push(
+                await github.updateIssue(existingIssue.number, issueOptionBase)
+              )
+            }
+          } else if (existingIssue.state === 'closed') {
+            // Issue is closed, but vulnerability still exists, reopen it
+            if (inputs.dryRun) {
+              core.info(
+                `[Dry Run] Would reopen issue #${existingIssue.number} ('${issue.title}')`
+              )
+            } else {
+              core.info(
+                `Reopening issue #${existingIssue.number} ('${issue.title}')`
+              )
+              // Reopening should likely be tracked under 'updated' or a separate 'reopened' list
+              // Using 'updated' for now as per original logic tendency
+              issuesUpdated.push(await github.reopenIssue(existingIssue.number))
+            }
+          } else {
+            core.info(
+              `No update needed for issue #${existingIssue.number} ('${issue.title}')`
+            )
+          }
+        } else if (inputs.dryRun) {
+          core.info(`[Dry Run] Would create issue with title: ${issue.title}`) // Simplified log
         } else {
-          issuesCreated.push(await github.createIssue(issueOption))
+          core.info(`Creating issue with title: ${issue.title}`)
+          issuesCreated.push(await github.createIssue(issueOptionBase))
         }
       }
     }
 
-    // Set the created and updated issues as outputs
-    core.setOutput('issues-created', JSON.stringify(issuesCreated))
-    core.setOutput('issues-updated', JSON.stringify(issuesUpdated))
-    core.setOutput('issues-closed', JSON.stringify(issuesClosed))
+    // --- Set Outputs ---
+    core.setOutput(
+      'fixable_vulnerability',
+      fixableVulnerabilityExists.toString()
+    ) // Set the new output
+    core.setOutput('created_issues', JSON.stringify(issuesCreated)) // Use the correct variable name and format
+    core.setOutput('closed_issues', JSON.stringify(issuesClosed)) // Use the correct variable name and format
+    // Keep the updated issues output as well, might be useful
+    core.setOutput('updated_issues', JSON.stringify(issuesUpdated))
   } catch (error) {
     if (error instanceof Error) {
       abort(`Error: ${error.message}`, error)
