@@ -66,6 +66,7 @@ jobs:
       - name: Print Output
         id: output
         run: |
-          echo "${{ steps.test-action.outputs.issues-created }}"
-          echo "${{ steps.test-action.outputs.issues-updated }}"
-          echo "${{ steps.test-action.outputs.issues-closed }}"
+          echo "${{ steps.test-action.outputs.created_issues }}"
+          echo "${{ steps.test-action.outputs.updated_issues }}"
+          echo "${{ steps.test-action.outputs.closed_issues }}"
+          echo "${{ steps.test-action.outputs.fixable_vulnerability }}"
