@@ -129,6 +129,16 @@ async function main() {
           fixLabel: inputs.issue.fixLabel,
           hasFix: issue.hasFix
         }
+        // --- Calculate intended labels for dry-run ---
+        const intendedLabels = [...inputs.issue.labels] // Start with base labels from input
+        if (
+          inputs.issue.enableFixLabel &&
+          issue.hasFix &&
+          inputs.issue.fixLabel &&
+          !intendedLabels.includes(inputs.issue.fixLabel)
+        ) {
+          intendedLabels.push(inputs.issue.fixLabel)
+        }
 
         if (existingIssue) {
           // Issue exists, check if we need to update it
@@ -146,7 +156,7 @@ async function main() {
           if (needsUpdate && existingIssue.state === 'open') {
             if (inputs.dryRun) {
               console.log(
-                `[Dry Run] Would update issue #${existingIssue.number} ('${issue.title}')` // Removed options dump
+                `[Dry Run] Would update issue #${existingIssue.number} ('${issue.title}') with labels: ${intendedLabels.join(', ')}` // Removed options dump
               )
             } else {
               core.info(
@@ -160,7 +170,7 @@ async function main() {
             // Issue is closed, but vulnerability still exists, reopen it
             if (inputs.dryRun) {
               core.info(
-                `[Dry Run] Would reopen issue #${existingIssue.number} ('${issue.title}')`
+                `[Dry Run] Would reopen issue #${existingIssue.number} ('${issue.title}') with labels: ${intendedLabels.join(', ')}`
               )
             } else {
               core.info(
@@ -176,7 +186,9 @@ async function main() {
             )
           }
         } else if (inputs.dryRun) {
-          core.info(`[Dry Run] Would create issue with title: ${issue.title}`) // Simplified log
+          core.info(
+            `[Dry Run] Would create issue with title: ${issue.title} and labels: ${intendedLabels.join(', ')}`
+          ) // Simplified log
         } else {
           core.info(`Creating issue with title: ${issue.title}`)
           issuesCreated.push(await github.createIssue(issueOptionBase))
