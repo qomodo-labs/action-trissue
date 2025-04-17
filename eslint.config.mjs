@@ -22,7 +22,14 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: ['**/coverage', '**/dist', '**/linter', '**/node_modules', 'CHANGELOG.md', 'README.md']
+    ignores: [
+      '**/coverage',
+      '**/dist',
+      '**/linter',
+      '**/node_modules',
+      'CHANGELOG.md',
+      'README.md'
+    ]
   },
   ...compat.extends(
     'eslint:recommended',
